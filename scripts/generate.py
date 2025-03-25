@@ -24,17 +24,17 @@ def get_dict():
     }
 
 
-def process_linux(s):
+def process_linux(s, arch="x64"):
     libs = "libportaudio.so"
 
     d = get_dict()
-    d["dotnet_rid"] = "linux-x64"
+    d["dotnet_rid"] = f"linux-{arch}"
     d["libs"] = libs
 
     environment = jinja2.Environment()
     template = environment.from_string(s)
     s = template.render(**d)
-    with open("./linux/portaudio.runtime.csproj", "w") as f:
+    with open(f"./linux-{arch}/portaudio.runtime.csproj", "w") as f:
         f.write(s)
 
 
@@ -84,7 +84,7 @@ def main():
     s = read_proj_file("./portaudio.csproj.runtime.in")
     process_macos(s, "x64")
     process_macos(s, "arm64")
-    process_linux(s)
+  process_linux(s, "arm64") 
     process_windows(s)
     process_ios(s)
 
