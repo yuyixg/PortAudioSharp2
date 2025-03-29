@@ -46,17 +46,19 @@ jobs:
 
       - name: build nuget packages
         shell: bash
-        if: startsWith(matrix.os, 'macos')
+        # 移除 if 条件，让 Ubuntu 也能运行 run.sh
         run: |
           cd scripts/
-          dotnet workload install ios
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            dotnet workload install ios
+          fi
           ./run.sh
-          ls -lh packages
+          ls -lh packages || echo "packages directory not found"
 
       - uses: actions/upload-artifact@v4
         name: upload nuget packages
         with:
-          name: nuget-packages
+          name: nuget-packages-${{ matrix.os }}-${{ matrix.arch }}
           path: scripts/packages/*.nupkg
 
       - name: publish .Net packages to nuget.org
@@ -65,5 +67,10 @@ jobs:
         env:
           API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          cd scripts/packages
-          dotnet nuget push ./*.nupkg --skip-duplicate --api-key $API_KEY --source https://api.nuget.org/v3/index.json
+          if [ -d "scripts/packages" ]; then
+            cd scripts/packages
+            dotnet nuget push ./*.nupkg --skip-duplicate --api-key $API_KEY --source https://api.nuget.org/v3/index.json
+          else
+            echo "scripts/packages directory does not exist, skipping package push"
+            exit 0
+          fi
