@@ -84,7 +84,8 @@ def main():
     s = read_proj_file("./portaudio.csproj.runtime.in")
     process_macos(s, "x64")
     process_macos(s, "arm64")
-  process_linux(s, "arm64") 
+    process_linux(s, "x64")
+    process_linux(s, "arm64")  
     process_windows(s)
     process_ios(s)
 
