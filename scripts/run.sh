@@ -121,7 +121,23 @@ else
     <Description>PortAudio wrapper for .NET</Description>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  
+  <!-- 添加一个空的源文件以避免警告 -->
+  <ItemGroup>
+    <Compile Include="Empty.cs" />
+  </ItemGroup>
 </Project>
+EOF
+    
+    # 创建一个空的源文件
+    cat > Empty.cs << EOF
+namespace PortAudio
+{
+    internal class Empty
+    {
+        // 空类，仅用于避免编译警告
+    }
+}
 EOF
     
     # 创建一个临时的 nuget.config 文件
@@ -141,5 +157,12 @@ EOF
     # 返回上级目录并清理
     popd
     rm -rf $METADIR
+    
+    # 显示最终生成的包
+    echo "最终生成的包："
+    ls -la ./packages/
+    
+    # 明确退出脚本，避免执行后续可能的隐藏命令
+    exit 0
   fi
 fi
