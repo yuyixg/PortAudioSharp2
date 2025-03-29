@@ -51,27 +51,47 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             dotnet workload install ios
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            dotnet workload install wasm-tools
           fi
 
       - name: build nuget packages
         shell: bash
         run: |
           cd scripts/
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            # macOS build with iOS support
-            ./run.sh
+          # 修改 run.sh 脚本的执行权限
+          chmod +x ./run.sh
+          
+          # 根据操作系统环境设置环境变量
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" && "${{ matrix.arch }}" == "arm64" ]]; then
+            # 只在 Linux ARM64 环境下构建 Linux ARM64 包
+            mkdir -p linux-arm64 packages
+            
+            # 复制库文件
+            if [ -f "./libportaudio.so" ]; then
+              cp -v ./libportaudio.so ./linux-arm64
+            fi
+            
+            # 生成项目文件
+            ./generate.py
+            
+            # 只编译 Linux ARM64 相关包
+            pushd linux-arm64
+            dotnet build -c Release
+            dotnet pack -c Release -o ../packages
+            popd
+            
+            echo "只构建了 Linux ARM64 包"
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            # 在其他 Linux 环境下跳过构建
+            mkdir -p packages
+            echo "跳过构建，只在 Linux ARM64 环境下构建包"
           else
-            # Ubuntu build without iOS
+            # 在非 Linux 环境下，执行完整的构建流程
             export SKIP_IOS=1
             ./run.sh
-            
-            # Build PortAudioSharp separately with correct parameters
-            cd ../PortAudioSharp
-            dotnet build -c Release "/p:TargetFrameworks=\"net6.0;net7.0\""
-            dotnet pack -c Release "/p:TargetFrameworks=\"net6.0;net7.0\"" -o ../scripts/packages
           fi
           
-          cd $GITHUB_WORKSPACE/scripts
           ls -lh packages || echo "packages directory not found"
 
       - uses: actions/upload-artifact@v4
