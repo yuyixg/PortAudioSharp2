@@ -69,8 +69,21 @@ else
   popd
 fi
 
-# 编译主项目
-pushd ../PortAudioSharp
-dotnet build -c Release
-dotnet pack -c Release -o ../scripts/packages
-popd
+# 编译主项目，如果设置了 SKIP_IOS 环境变量则跳过
+if [ -z "$SKIP_IOS" ]; then
+  pushd ../PortAudioSharp
+  dotnet build -c Release
+  dotnet pack -c Release -o ../scripts/packages
+  popd
+else
+  echo "Skipping iOS build due to SKIP_IOS environment variable"
+  
+  # 在 Linux 环境下，我们需要修改 PortAudioSharp 项目文件来临时移除 iOS 目标
+  if [ "$OS_TYPE" == "Linux" ]; then
+    pushd ../PortAudioSharp
+    # 使用临时文件来构建不包含 iOS 目标的项目
+    dotnet build -c Release /p:TargetFrameworks="net6.0;net7.0"
+    dotnet pack -c Release /p:TargetFrameworks="net6.0;net7.0" -o ../scripts/packages
+    popd
+  fi
+fi
