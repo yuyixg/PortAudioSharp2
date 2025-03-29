@@ -81,9 +81,9 @@ else
   # 在 Linux 环境下，我们需要修改 PortAudioSharp 项目文件来临时移除 iOS 目标
   if [ "$OS_TYPE" == "Linux" ]; then
     pushd ../PortAudioSharp
-    # 使用临时文件来构建不包含 iOS 目标的项目
-    dotnet build -c Release /p:TargetFrameworks="net6.0;net7.0"
-    dotnet pack -c Release /p:TargetFrameworks="net6.0;net7.0" -o ../scripts/packages
+    # 修复参数传递方式
+    dotnet build -c Release -p:TargetFrameworks=net6.0\;net7.0
+    dotnet pack -c Release -p:TargetFrameworks=net6.0\;net7.0 -o ../scripts/packages
     popd
   fi
 fi
