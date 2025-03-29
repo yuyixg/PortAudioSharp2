@@ -1,4 +1,4 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 # Copyright (c)  2023  Xiaomi Corporation
 
 set -ex
@@ -120,6 +120,8 @@ else
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>PortAudio wrapper for .NET</Description>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- 禁用默认编译项 -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   
   <!-- 添加一个空的源文件以避免警告 -->
