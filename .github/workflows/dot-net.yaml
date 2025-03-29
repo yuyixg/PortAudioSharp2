@@ -62,33 +62,39 @@ jobs:
           # 修改 run.sh 脚本的执行权限
           chmod +x ./run.sh
           
+          # 创建必要的目录
+          mkdir -p linux linux-x64 linux-arm64 packages
+          
           # 根据操作系统环境设置环境变量
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" && "${{ matrix.arch }}" == "arm64" ]]; then
-            # 只在 Linux ARM64 环境下构建 Linux ARM64 包
-            mkdir -p linux-arm64 packages
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            export SKIP_IOS=1
             
-            # 复制库文件
-            if [ -f "./libportaudio.so" ]; then
-              cp -v ./libportaudio.so ./linux-arm64
+            # 如果是 arm64 架构，只构建 linux-arm64 包
+            if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+              # 复制库文件
+              if [ -f "./libportaudio.so" ]; then
+                cp -v ./libportaudio.so ./linux-arm64/
+              fi
+              
+              # 修改 generate.py 脚本，跳过创建符号链接
+              sed -i 's/os.symlink("..\/linux-x64\/portaudio.runtime.csproj", ".\/linux\/portaudio.runtime.csproj")/#os.symlink("..\/linux-x64\/portaudio.runtime.csproj", ".\/linux\/portaudio.runtime.csproj")/' ./generate.py
+              
+              # 运行修改后的 generate.py
+              python3 ./generate.py
+              
+              # 只构建 linux-arm64 包
+              pushd linux-arm64
+              dotnet build -c Release
+              dotnet pack -c Release -o ../packages
+              popd
+              
+              echo "只构建了 Linux ARM64 包"
+            else
+              # 运行完整的脚本
+              ./run.sh
             fi
-            
-            # 生成项目文件
-            ./generate.py
-            
-            # 只编译 Linux ARM64 相关包
-            pushd linux-arm64
-            dotnet build -c Release
-            dotnet pack -c Release -o ../packages
-            popd
-            
-            echo "只构建了 Linux ARM64 包"
-          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            # 在其他 Linux 环境下跳过构建
-            mkdir -p packages
-            echo "跳过构建，只在 Linux ARM64 环境下构建包"
           else
             # 在非 Linux 环境下，执行完整的构建流程
-            export SKIP_IOS=1
             ./run.sh
           fi
           
