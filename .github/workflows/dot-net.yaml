@@ -46,13 +46,24 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip jinja2
 
-      - name: build nuget packages
+      - name: Install .NET workloads
         shell: bash
-        # 移除 if 条件，让 Ubuntu 也能运行 run.sh
         run: |
-          cd scripts/
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             dotnet workload install ios
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            dotnet workload install wasm-tools
+          fi
+
+      - name: build nuget packages
+        shell: bash
+        run: |
+          cd scripts/
+          # 修改 run.sh 脚本的执行权限
+          chmod +x ./run.sh
+          # 根据操作系统环境设置环境变量
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            export SKIP_IOS=1
           fi
           ./run.sh
           ls -lh packages || echo "packages directory not found"
