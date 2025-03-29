@@ -100,5 +100,39 @@ else
     echo "在 Linux 环境下跳过 PortAudioSharp 的构建，只使用已生成的 runtime 包"
     echo "Runtime 包已成功生成，跳过元包创建"
     ls -la ./packages/
+    
+    # 创建一个简单的元包项目
+    echo "创建简单的元包项目"
+    META_PROJ="PortAudioMeta.csproj"
+    cat > $META_PROJ << EOF
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>org.k2fsa.portaudio</PackageId>
+    <Version>1.0.4</Version>
+    <Authors>Xiaomi Corporation</Authors>
+    <Company>Xiaomi Corporation</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>PortAudio wrapper for .NET</Description>
+  </PropertyGroup>
+</Project>
+EOF
+    
+    # 创建一个临时的 nuget.config 文件
+    cat > nuget.config << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+EOF
+    
+    # 构建和打包元包
+    dotnet pack -c Release $META_PROJ -o ./packages
+    
+    # 清理临时文件
+    rm $META_PROJ nuget.config
   fi
 fi
