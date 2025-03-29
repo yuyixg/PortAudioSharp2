@@ -20,7 +20,13 @@ def read_proj_file(filename):
         return None
     
     with open(filename) as f:
-        return f.read()
+        content = f.read()
+        
+    # Replace .NET 7.0 with .NET 6.0 in the template
+    content = content.replace('net7.0', 'net6.0')
+    print("Updated target framework from net7.0 to net6.0")
+    
+    return content
 
 
 def get_dict():
