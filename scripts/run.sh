@@ -80,49 +80,38 @@ else
   
   # 在 Linux 环境下，我们需要创建临时项目文件来排除 iOS 目标
   if [ "$OS_TYPE" == "Linux" ]; then
-    pushd ../PortAudioSharp
+    # 在 Linux 环境下，我们只生成 Linux 相关的包，跳过 PortAudioSharp 的构建
+    echo "在 Linux 环境下跳过 PortAudioSharp 的构建，只使用已生成的 runtime 包"
     
-    # 创建一个简单的临时项目文件，只包含基本的 .NET 目标框架
-    TEMP_PROJ="PortAudioSharp.Linux.csproj"
-    echo "创建临时项目文件 $TEMP_PROJ，只包含基本的 .NET 目标框架"
+    # 可以选择创建一个简单的元包，只包含对 Linux runtime 包的引用
+    pushd ../scripts
     
-    cat > $TEMP_PROJ << EOF
+    # 创建一个简单的元包项目
+    META_PROJ="PortAudioMeta.csproj"
+    cat > $META_PROJ << EOF
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>org.k2fsa.portaudio</PackageId>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>org.k2fsa.portaudio.linux</PackageId>
     <Version>1.0.4</Version>
     <Authors>Xiaomi Corporation</Authors>
     <Company>Xiaomi Corporation</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>PortAudio wrapper for Linux</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="obj/**/*.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="org.k2fsa.portaudio.runtime.linux-x64" Version="1.0.4" />
     <PackageReference Include="org.k2fsa.portaudio.runtime.linux-arm64" Version="1.0.4" />
-    <PackageReference Include="org.k2fsa.portaudio.runtime.win-x64" Version="1.0.4" />
-    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-x64" Version="1.0.4" />
-    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-arm64" Version="1.0.4" />
   </ItemGroup>
 </Project>
 EOF
     
-    # 安装必要的工作负载
-    dotnet workload install maui
-
-    # 使用临时项目文件构建和打包
-    dotnet build -c Release $TEMP_PROJ
-    dotnet pack -c Release $TEMP_PROJ -o ../scripts/packages
+    # 构建和打包元包
+    dotnet pack -c Release $META_PROJ -o ./packages
     
     # 清理临时文件
-    rm $TEMP_PROJ
+    rm $META_PROJ
     
     popd
   fi
