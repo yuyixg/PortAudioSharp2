@@ -46,6 +46,7 @@ jobs:
 
       - name: build nuget packages
         shell: bash
+        if: startsWith(matrix.os, 'macos')
         run: |
           cd scripts/
           dotnet workload install ios
