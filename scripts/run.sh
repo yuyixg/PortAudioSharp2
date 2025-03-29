@@ -83,36 +83,10 @@ else
     # 在 Linux 环境下，我们只生成 Linux 相关的包，跳过 PortAudioSharp 的构建
     echo "在 Linux 环境下跳过 PortAudioSharp 的构建，只使用已生成的 runtime 包"
     
-    # 可以选择创建一个简单的元包，只包含对 Linux runtime 包的引用
-    pushd ../scripts
+    # 我们不需要创建元包，因为 runtime 包已经成功生成
+    echo "Runtime 包已成功生成，跳过元包创建"
     
-    # 创建一个简单的元包项目
-    META_PROJ="PortAudioMeta.csproj"
-    cat > $META_PROJ << EOF
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>org.k2fsa.portaudio.linux</PackageId>
-    <Version>1.0.4</Version>
-    <Authors>Xiaomi Corporation</Authors>
-    <Company>Xiaomi Corporation</Company>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>PortAudio wrapper for Linux</Description>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-x64" Version="1.0.4" />
-    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-arm64" Version="1.0.4" />
-  </ItemGroup>
-</Project>
-EOF
-    
-    # 构建和打包元包
-    dotnet pack -c Release $META_PROJ -o ./packages
-    
-    # 清理临时文件
-    rm $META_PROJ
-    
-    popd
+    # 列出已生成的包
+    ls -la ./packages/
   fi
 fi
