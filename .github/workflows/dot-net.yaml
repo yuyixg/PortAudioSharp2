@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
+        os: [macos-latest, ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -47,6 +47,7 @@ jobs:
         shell: bash
         run: |
           python3 -m pip install --upgrade pip jinja2
+
       - name: build nuget packages
         shell: bash
         run: |
@@ -55,6 +56,7 @@ jobs:
           dotnet workload install ios
           ./run.sh
           ls -lh packages
+
       - uses: actions/upload-artifact@v2
         name: upload nuget packages
         with:
@@ -62,7 +64,7 @@ jobs:
           path: scripts/packages/*.nupkg
 
       - name: publish .Net packages to nuget.org
-        if: github.repository == 'csukuangfj/PortAudioSharp2'
+        if: github.repository == 'yuyixg/PortAudioSharp2'
         shell: bash
         env:
           API_KEY: ${{ secrets.NUGET_API_KEY }}
