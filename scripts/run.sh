@@ -78,14 +78,24 @@ if [ -z "$SKIP_IOS" ]; then
 else
   echo "Skipping iOS build due to SKIP_IOS environment variable"
   
-  # 在 Linux 环境下，我们需要修改 PortAudioSharp 项目文件来临时移除 iOS 目标
+  # 在 Linux 环境下，我们需要创建临时项目文件来排除 iOS 目标
   if [ "$OS_TYPE" == "Linux" ]; then
     pushd ../PortAudioSharp
-    # 使用单引号保护分号，或者分别指定每个目标框架
-    dotnet build -c Release -f net6.0
-    dotnet build -c Release -f net7.0
-    dotnet pack -c Release -f net6.0 -o ../scripts/packages
-    dotnet pack -c Release -f net7.0 -o ../scripts/packages
+    
+    # 创建临时项目文件，只包含 net6.0 和 net7.0 目标框架
+    TEMP_PROJ="PortAudioSharp.Linux.csproj"
+    echo "创建临时项目文件 $TEMP_PROJ，排除 iOS 目标框架"
+    
+    # 使用 grep 和 sed 创建不包含 iOS 目标的临时项目文件
+    cat PortAudioSharp.csproj | grep -v "ios" > $TEMP_PROJ
+    
+    # 使用临时项目文件构建和打包
+    dotnet build -c Release $TEMP_PROJ
+    dotnet pack -c Release $TEMP_PROJ -o ../scripts/packages
+    
+    # 清理临时文件
+    rm $TEMP_PROJ
+    
     popd
   fi
 fi
