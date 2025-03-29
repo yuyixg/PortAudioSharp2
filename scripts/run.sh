@@ -82,13 +82,41 @@ else
   if [ "$OS_TYPE" == "Linux" ]; then
     pushd ../PortAudioSharp
     
-    # 创建临时项目文件，只包含 net6.0 和 net7.0 目标框架
+    # 创建一个简单的临时项目文件，只包含基本的 .NET 目标框架
     TEMP_PROJ="PortAudioSharp.Linux.csproj"
-    echo "创建临时项目文件 $TEMP_PROJ，排除 iOS 目标框架"
+    echo "创建临时项目文件 $TEMP_PROJ，只包含基本的 .NET 目标框架"
     
-    # 使用 grep 和 sed 创建不包含 iOS 目标的临时项目文件
-    cat PortAudioSharp.csproj | grep -v "ios" > $TEMP_PROJ
+    cat > $TEMP_PROJ << EOF
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>org.k2fsa.portaudio</PackageId>
+    <Version>1.0.4</Version>
+    <Authors>Xiaomi Corporation</Authors>
+    <Company>Xiaomi Corporation</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**/*.cs" Exclude="obj/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-x64" Version="1.0.4" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-arm64" Version="1.0.4" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.win-x64" Version="1.0.4" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-x64" Version="1.0.4" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-arm64" Version="1.0.4" />
+  </ItemGroup>
+</Project>
+EOF
     
+    # 安装必要的工作负载
+    dotnet workload install maui
+
     # 使用临时项目文件构建和打包
     dotnet build -c Release $TEMP_PROJ
     dotnet pack -c Release $TEMP_PROJ -o ../scripts/packages
