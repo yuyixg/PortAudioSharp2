@@ -101,8 +101,13 @@ else
     echo "Runtime 包已成功生成，跳过元包创建"
     ls -la ./packages/
     
+    # 创建一个独立的目录用于元包构建
+    METADIR="metapackage"
+    mkdir -p $METADIR
+    pushd $METADIR
+    
     # 创建一个简单的元包项目
-    echo "创建简单的元包项目"
+    echo "在独立目录中创建简单的元包项目"
     META_PROJ="PortAudioMeta.csproj"
     cat > $META_PROJ << EOF
 <Project Sdk="Microsoft.NET.Sdk">
@@ -114,6 +119,7 @@ else
     <Company>Xiaomi Corporation</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>PortAudio wrapper for .NET</Description>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>
 EOF
@@ -130,9 +136,10 @@ EOF
 EOF
     
     # 构建和打包元包
-    dotnet pack -c Release $META_PROJ -o ./packages
+    dotnet pack -c Release $META_PROJ -o ../packages
     
-    # 清理临时文件
-    rm $META_PROJ nuget.config
+    # 返回上级目录并清理
+    popd
+    rm -rf $METADIR
   fi
 fi
