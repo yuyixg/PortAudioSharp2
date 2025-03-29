@@ -71,6 +71,23 @@ fi
 
 # 编译主项目，如果设置了 SKIP_IOS 环境变量则跳过
 if [ -z "$SKIP_IOS" ]; then
+  # 创建本地 NuGet 源
+  echo "创建本地 NuGet 源"
+  mkdir -p ../PortAudioSharp/packages
+  cp -v ./packages/*.nupkg ../PortAudioSharp/packages/
+  
+  # 创建 nuget.config 文件
+  cat > ../PortAudioSharp/nuget.config << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="local" value="packages" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+EOF
+  
   pushd ../PortAudioSharp
   dotnet build -c Release
   dotnet pack -c Release -o ../scripts/packages
@@ -78,15 +95,10 @@ if [ -z "$SKIP_IOS" ]; then
 else
   echo "Skipping iOS build due to SKIP_IOS environment variable"
   
-  # 在 Linux 环境下，我们需要创建临时项目文件来排除 iOS 目标
+  # 在 Linux 环境下，我们只生成 Linux 相关的包，跳过 PortAudioSharp 的构建
   if [ "$OS_TYPE" == "Linux" ]; then
-    # 在 Linux 环境下，我们只生成 Linux 相关的包，跳过 PortAudioSharp 的构建
     echo "在 Linux 环境下跳过 PortAudioSharp 的构建，只使用已生成的 runtime 包"
-    
-    # 我们不需要创建元包，因为 runtime 包已经成功生成
     echo "Runtime 包已成功生成，跳过元包创建"
-    
-    # 列出已生成的包
     ls -la ./packages/
   fi
 fi
