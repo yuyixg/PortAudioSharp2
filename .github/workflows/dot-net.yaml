@@ -51,21 +51,27 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             dotnet workload install ios
-          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            dotnet workload install wasm-tools
           fi
 
       - name: build nuget packages
         shell: bash
         run: |
           cd scripts/
-          # 修改 run.sh 脚本的执行权限
-          chmod +x ./run.sh
-          # 根据操作系统环境设置环境变量
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            # macOS build with iOS support
+            ./run.sh
+          else
+            # Ubuntu build without iOS
             export SKIP_IOS=1
+            ./run.sh
+            
+            # Build PortAudioSharp separately with correct parameters
+            cd ../PortAudioSharp
+            dotnet build -c Release "/p:TargetFrameworks=\"net6.0;net7.0\""
+            dotnet pack -c Release "/p:TargetFrameworks=\"net6.0;net7.0\"" -o ../scripts/packages
           fi
-          ./run.sh
+          
+          cd $GITHUB_WORKSPACE/scripts
           ls -lh packages || echo "packages directory not found"
 
       - uses: actions/upload-artifact@v4
