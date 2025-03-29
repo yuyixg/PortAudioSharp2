@@ -3,6 +3,7 @@
 
 import argparse
 import re
+import os
 from pathlib import Path
 
 import jinja2
@@ -26,6 +27,9 @@ def get_dict():
 
 def process_linux(s, arch="x64"):
     libs = "libportaudio.so"
+    
+    # 确保目录存在
+    os.makedirs(f"./linux-{arch}", exist_ok=True)
 
     d = get_dict()
     d["dotnet_rid"] = f"linux-{arch}"
@@ -40,6 +44,9 @@ def process_linux(s, arch="x64"):
 
 def process_macos(s, arch):
     libs = "libportaudio.dylib"
+    
+    # 确保目录存在
+    os.makedirs(f"./macos-{arch}", exist_ok=True)
 
     d = get_dict()
     d["dotnet_rid"] = f"osx-{arch}"
@@ -54,6 +61,9 @@ def process_macos(s, arch):
 
 def process_ios(s):
     libs = "libportaudio.a"
+    
+    # 确保目录存在
+    os.makedirs("./ios-arm64", exist_ok=True)
 
     d = get_dict()
     d["dotnet_rid"] = f"ios-arm64"
@@ -68,6 +78,9 @@ def process_ios(s):
 
 def process_windows(s):
     libs = "portaudio.dll"
+    
+    # 确保目录存在
+    os.makedirs("./windows", exist_ok=True)
 
     d = get_dict()
     d["dotnet_rid"] = "win-x64"
